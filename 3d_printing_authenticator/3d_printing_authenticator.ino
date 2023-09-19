@@ -6,15 +6,10 @@
 
 #include <HTTPClient.h>
 
+#include "config.h"
+
 #define SS_PIN 5
 #define RST_PIN 0
-
-#define SERVER_IP server_ip_address
-#define SERVER_PORT server_port
-
-#define SECRET some_secret_key
-#define PASSWORD password
-#define SSID ssid
 
 MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 
@@ -41,10 +36,8 @@ void setup() {
 }
  
 void loop() {
-
   // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
-  if ( ! rfid.PICC_IsNewCardPresent())
-    return;
+  if ( ! rfid.PICC_IsNewCardPresent()) return;
 
   // Verify if the NUID has been readed
   rfid.PICC_ReadCardSerial();
@@ -76,12 +69,13 @@ void loop() {
   Serial.println(postIDToServer(idToString(rfid.uid.uidByte, rfid.uid.size)));
 
   // Halt PICC
-  rfid.PICC_HaltA();
+  // rfid.PICC_HaltA();
 
-  // Stop encryption on PCD
-  rfid.PCD_StopCrypto1();
+  // // Stop encryption on PCD
+  // rfid.PCD_StopCrypto1();
+  // rfid.PCD_Reset();
 
-  delay(100);
+  delay(500);
 }
 
 /**
