@@ -120,7 +120,7 @@ int postIDToServer(String id)
     // configure traged server and url
     //http.begin("https://www.howsmyssl.com/a/check", ca); //HTTPS
     // http.begin(SERVER_IP, SERVER_PORT, "/addUser"); //HTTP
-    http.begin(SERVER_IP, SERVER_PORT, "/setCanPrint"); //HTTP
+    http.begin(SERVER_IP, SERVER_PORT, "/setPrintWindow"); //HTTP
     http.addHeader("Content-Type", "application/json");
   
     return http.POST("{\"id\":\"" + id + "\", \"secret\":\"" + SECRET + "\"}");
