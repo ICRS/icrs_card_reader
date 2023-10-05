@@ -1,119 +1,57 @@
-#include <SPI.h>
-#include <MFRC522.h>
+#include <Wire.h>
+#include <PN532_I2C.h>
+#include <PN532.h>
+#include <NfcAdapter.h>
 
 #include <WiFi.h>
-#include <WiFiMulti.h>
-
 #include <HTTPClient.h>
 
 #include "config.h"
 
-#define SS_PIN 5
-#define RST_PIN 0
+PN532_I2C pn532_i2c(Wire);
+NfcAdapter nfc = NfcAdapter(pn532_i2c);
+String tagId = "None";
+byte nuidPICC[4];
 
-MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
-
-MFRC522::MIFARE_Key key; 
-
-WiFiMulti wifiMulti;
 
 void setup() { 
   Serial.begin(9600);
-  SPI.begin(); // Init SPI bus
-  rfid.PCD_Init(); // Init MFRC522 
-
-  for (byte i = 0; i < 6; i++) {
-    key.keyByte[i] = 0xFF;
-  }
-
-  Serial.println(F("This code scan the MIFARE Classsic NUID."));
-  Serial.print(F("Using the following key:"));
-  printHex(key.keyByte, MFRC522::MF_KEY_SIZE);
-
+  nfc.begin();
   // Setup WiFi
-  wifiMulti.addAP(SSID, PASSWORD);
+  initWiFi();
 
 }
  
 void loop() {
-  // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
-  if ( ! rfid.PICC_IsNewCardPresent()) return;
-
-  // Verify if the NUID has been readed
-  rfid.PICC_ReadCardSerial();
-
-  Serial.print(F("PICC type: "));
-  MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-  Serial.println(rfid.PICC_GetTypeName(piccType));
-
-  // Check is the PICC of Classic MIFARE type
-  if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&  
-    piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-    piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
-    Serial.println(F("Your tag is not of type MIFARE Classic."));
-    return;
-  }
-  
-  Serial.println(F("The NUID tag is:"));
-  Serial.print(F("In hex: "));
-  printHex(rfid.uid.uidByte, rfid.uid.size);
-
-  Serial.println();
-  Serial.print(F("In dec: "));
-  printDec(rfid.uid.uidByte, rfid.uid.size);
-  Serial.println();
-
-  Serial.println(idToString(rfid.uid.uidByte, rfid.uid.size));
-
-  // POST
-  Serial.println(postIDToServer(idToString(rfid.uid.uidByte, rfid.uid.size)));
-
-  // Halt PICC
-  // rfid.PICC_HaltA();
-
-  // // Stop encryption on PCD
-  // rfid.PCD_StopCrypto1();
-  // rfid.PCD_Reset();
-
-  delay(500);
+  readNFC();
 }
 
-/**
- *  Helper function for converting nid to a string
- */
-const String idToString(const byte buffer[], byte bufferSize)
+void readNFC() 
 {
-  String s = "";
-  for(byte i=0; i<bufferSize; i++)
-    s += String(buffer[i], HEX);
-  
-  return s;
-} 
-
-/**
- * Helper routine to dump a byte array as hex values to Serial. 
- */
-void printHex(byte *buffer, byte bufferSize) {
-  for (byte i = 0; i < bufferSize; i++) {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-    Serial.print(buffer[i], HEX);
-  }
+ if (nfc.tagPresent())
+ {
+   NfcTag tag = nfc.read();
+   tag.print();
+   tagId = tag.getUidString();
+   postIDToServer(tagId);
+ }
+ delay(50);
 }
 
-/**
- * Helper routine to dump a byte array as dec values to Serial.
- */
-void printDec(byte *buffer, byte bufferSize) {
-  for (byte i = 0; i < bufferSize; i++) {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-    Serial.print(buffer[i], DEC);
+void initWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi ..");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
+    delay(1000);
   }
+  Serial.println(WiFi.localIP());
 }
-
 
 int postIDToServer(String id)
 {
-  if((wifiMulti.run() == WL_CONNECTED)) {
+  if((WiFi.status() == WL_CONNECTED)) {
     Serial.println("Attempting to POST ID To Server");
     HTTPClient http;
 
