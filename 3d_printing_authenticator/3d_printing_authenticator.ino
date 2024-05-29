@@ -23,7 +23,18 @@ void setup() {
 }
  
 void loop() {
+  checkWiFi();
   readNFC();
+}
+
+void checkWiFi(){
+   if (WiFi.status() == WL_CONNECTED) return;
+   WiFi.reconnect();
+   while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
+    delay(1000);
+  }
+  Serial.println(WiFi.localIP());
 }
 
 void readNFC() 
