@@ -41,11 +41,11 @@ void checkWiFi(){
    WiFi.reconnect();
    while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
-    singleBlink(CRGB:yellow);
+    singleBlink(CRGB::Yellow);
     delay(1000);
   }
   Serial.println(WiFi.localIP());
-  singleBlink(CRGB:green); 
+  singleBlink(CRGB::Green); 
 }
 
 void singleBlink(const CRGB::HTMLColorCode colour) 
@@ -116,10 +116,10 @@ void initWiFi() {
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     delay(1000);
-    singleBlink(CRGB:yellow);
+    singleBlink(CRGB::Yellow);
   }
   Serial.println(WiFi.localIP());
-  singleBlink(CRGB:green);
+  singleBlink(CRGB::Green);
 }
 
 int postIDToServer(String id) {
