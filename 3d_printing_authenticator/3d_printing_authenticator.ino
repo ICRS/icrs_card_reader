@@ -31,8 +31,41 @@ void setup() {
 }
 
 void loop() {
+  checkWiFi();
   readNFC();
 }
+
+void checkWiFi(){
+   if (WiFi.status() == WL_CONNECTED) return;
+
+   WiFi.reconnect();
+   while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
+    singleBlink(CRGB::Yellow);
+    delay(1000);
+  }
+  Serial.println(WiFi.localIP());
+  singleBlink(CRGB::Green); 
+}
+
+void singleBlink(const CRGB::HTMLColorCode colour) 
+{
+    for(int j = 0; j < NUM_LEDS; j++) 
+    {
+      leds[j] = colour;
+      FastLED.show();
+      delay(200);
+    }
+    
+
+    delay(600);
+    for(int j = 0; j < NUM_LEDS; j++) 
+    {
+      leds[j] = CRGB::Black;
+    }
+    FastLED.show();
+}
+
 
 void blink(const CRGB::HTMLColorCode colour) 
 {
@@ -83,8 +116,10 @@ void initWiFi() {
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     delay(1000);
+    singleBlink(CRGB::Yellow);
   }
   Serial.println(WiFi.localIP());
+  singleBlink(CRGB::Green);
 }
 
 int postIDToServer(String id) {
