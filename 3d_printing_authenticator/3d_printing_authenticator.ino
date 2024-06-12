@@ -5,6 +5,7 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ESP32Time.h>
 
 #include <FastLED.h>
 
@@ -12,34 +13,58 @@
 
 #define NUM_LEDS 2
 
+ESP32Time rtc(3600);
+int loopCounter = 0;
+#define LOOP_RESET = 10 * 60 * 2; // ~ 2 min
+
+
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
 String tagId = "None";
 byte nuidPICC[4];
 
-#define DATA_PIN 13
+#define LED_PIN 13
 CRGB leds[NUM_LEDS];
 
 void setup() {
-  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);  // GRB ordering is assumed
 
   Serial.begin(9600);
   nfc.begin();
   // Setup WiFi
   initWiFi();
-  pinMode(DATA_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
 }
 
 void loop() {
   checkWiFi();
   readNFC();
+
+  delay(100);
 }
 
 void checkWiFi(){
-   if (WiFi.status() == WL_CONNECTED) return;
+  // Only check wifi every ~ 2min
+  // check by WiFi status and time server ping
 
-   WiFi.reconnect();
-   while (WiFi.status() != WL_CONNECTED) {
+  loopCounter++;
+  if(loopCounter <= LOOP_RESET) return;
+  loopCounter = 0;
+
+  if (WiFi.status() != WL_CONNECTED) reconnectWiFi();
+  if (!rtc.getEpoch()) reconnectWiFi();
+}
+
+void reconnectWiFi(){
+  singleBlink(CRGB::Orange);
+  WiFi.reconnect();
+  waitForWiFi();
+}
+
+void waitForWiFi(){
+  Serial.print("Connecting to WiFi ..");
+  
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     singleBlink(CRGB::Yellow);
     delay(1000);
@@ -66,7 +91,6 @@ void singleBlink(const CRGB::HTMLColorCode colour)
     FastLED.show();
 }
 
-
 void blink(const CRGB::HTMLColorCode colour) 
 {
   for(int i =0; i < 5; i++) 
@@ -85,60 +109,43 @@ void blink(const CRGB::HTMLColorCode colour)
     FastLED.show();
 
     delay(500);
-    
   }
-
 }
 
 void readNFC() {
-  if (nfc.tagPresent()) {
-    NfcTag tag = nfc.read();
-    tag.print();
-    tagId = tag.getUidString();
-    bool status = postIDToServer(tagId);
-    Serial.println(status);
-    if (status) 
-    {
-      blink(CRGB::Green);
-    } else 
-    {
-      blink(CRGB::Red);
-    }
-    // Serial.println(http)
-  }
-  delay(50);
+  if (!nfc.tagPresent()) return;
+
+  singleBlink(CRGB::Blue);
+  
+  NfcTag tag = nfc.read();
+  tag.print();
+  tagId = tag.getUidString();
+  bool status = postIDToServer(tagId);
+  Serial.println(status);
+  if (status) blink(CRGB::Green);
+  else blink(CRGB::Red);
 }
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi ..");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print('.');
-    delay(1000);
-    singleBlink(CRGB::Yellow);
-  }
-  Serial.println(WiFi.localIP());
-  singleBlink(CRGB::Green);
+  waitForWiFi();
 }
 
 int postIDToServer(String id) {
-  if ((WiFi.status() == WL_CONNECTED)) {
-    Serial.println("Attempting to POST ID To Server");
-    HTTPClient http;
+  if ((WiFi.status() != WL_CONNECTED)) reconnectWiFi();
 
-    // configure traged server and url
-    //http.begin("https://www.howsmyssl.com/a/check", ca); //HTTPS
-    // http.begin(SERVER_IP, SERVER_PORT, "/addUser"); //HTTP
-    http.begin(SERVER_IP, SERVER_PORT, "/setPrintWindow");  //HTTP
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Accept", "*/*");
+  Serial.println("Attempting to POST ID To Server");
+  HTTPClient http;
 
-    http.POST("{\"id\":\"" + id + "\", \"secret\":\"" + SECRET + "\"}");
-    // Serial.print("Status: ");
-    // Serial.println(http.getString());
-    return http.getString() == "SUCCESS";
-  }
+  http.begin(SERVER_IP, SERVER_PORT, "/setPrintWindow");  //HTTP
+  http.setHttpResponseTimeout(2000);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Accept", "*/*");
 
-  return -1;
+  http.POST("{\"id\":\"" + id + "\", \"secret\":\"" + SECRET + "\"}");
+  
+  if(http.status != 408) return http.getString() == "SUCCESS";
+
+  reconnectWiFi();
 }
