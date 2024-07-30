@@ -95,6 +95,7 @@ void readNFC() {
     NfcTag tag = nfc.read();
     tag.print();
     tagId = tag.getUidString();
+    tagId.replace(" ", "");
     bool status = postIDToServer(tagId);
     Serial.println(status);
     if (status) 
