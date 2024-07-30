@@ -50,11 +50,11 @@ void checkWiFi(){
 
 void singleBlink(const CRGB::HTMLColorCode colour) 
 {
-    for(int j = 0; j < NUM_LEDS; j++) 
+    for(int j = NUM_LEDS - 1; j >= 0 ; j--) 
     {
       leds[j] = colour;
       FastLED.show();
-      delay(200);
+      delay(160);
     }
     
 
@@ -69,7 +69,7 @@ void singleBlink(const CRGB::HTMLColorCode colour)
 
 void blink(const CRGB::HTMLColorCode colour) 
 {
-  for(int i =0; i < 5; i++) 
+  for(int i =0; i < 3; i++) 
   {
     for(int j = 0; j < NUM_LEDS; j++) 
     {
@@ -77,14 +77,14 @@ void blink(const CRGB::HTMLColorCode colour)
     }
     FastLED.show();
 
-    delay(500);
+    delay(200);
     for(int j = 0; j < NUM_LEDS; j++) 
     {
       leds[j] = CRGB::Black;
     }
     FastLED.show();
 
-    delay(500);
+    delay(200);
     
   }
 
@@ -94,8 +94,23 @@ void readNFC() {
   if (nfc.tagPresent()) {
     NfcTag tag = nfc.read();
     tag.print();
-    tagId = tag.getUidString();
-    tagId.replace(" ", "");
+
+    int uidLength = tag.getUidLength();
+    byte uid[uidLength];
+    tag.getUid(uid, uidLength);
+    
+    String tagId = "";
+    for(size_t i = 0; i < uidLength; i++)
+    {
+      if(uid[i] < 10)
+      {
+        tagId += "0";
+      }
+      tagId += String(uid[i], HEX);
+    }
+    tagId.toUpperCase();
+    // tagId = tag.getUidString();
+    Serial.println(tagId);
     bool status = postIDToServer(tagId);
     Serial.println(status);
     if (status) 
@@ -131,14 +146,16 @@ int postIDToServer(String id) {
     // configure traged server and url
     //http.begin("https://www.howsmyssl.com/a/check", ca); //HTTPS
     // http.begin(SERVER_IP, SERVER_PORT, "/addUser"); //HTTP
-    http.begin(SERVER_IP, SERVER_PORT, "/setPrintWindow");  //HTTP
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Accept", "*/*");
+    // ab cd ef 2 -> ab cd ef 2
 
-    http.POST("{\"id\":\"" + id + "\", \"secret\":\"" + SECRET + "\"}");
-    // Serial.print("Status: ");
-    // Serial.println(http.getString());
-    return http.getString() == "SUCCESS";
+    id.replace(" ", "%20");
+    http.begin(SERVER_IP, SERVER_PORT, "/print-window/update?uuid=" + id);  //HTTP
+    // http.addHeader("Content-Type", "application/json");
+    http.addHeader("Accept", "application/json");
+    http.setAuthorization(USERNAME, PASSWORD);
+
+    int code = http.POST("");
+    return code == 200;
   }
 
   return -1;
