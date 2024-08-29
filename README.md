@@ -2,7 +2,7 @@
 
 ### A collection of card scanning projects for the Imperial College Robotics Soceity
 
-All written in python and Arduino using ESP-32 boards
+All written in Arduino using ESP-32 boards
 
 
 ## 3D printer Authenticator
