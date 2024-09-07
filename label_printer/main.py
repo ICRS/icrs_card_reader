@@ -54,15 +54,20 @@ if __name__ == "__main__":
             pn532.PN532_MIFARE_ISO14443A_106KBPS)
 
         if success:
-            if uuid == uid.hex():
+            u = uid.hex().upper()
+            print("Uid: ", u)
+            if uuid == u:
                 continue
 
-            uuid = uid.hex()
+            uuid = u
             r = requests.get(
                 f"http://{endpoint}/project-box/assign/uuid",
                 params={"uuid": uuid},
                 auth=basic)
 
+            if r.status_code != 200:
+                print(f"Bad response: {r.reason}")
+                continue
             j = r.json()
             image = Image.open(
                 io.BytesIO(
