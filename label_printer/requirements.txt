@@ -2,3 +2,4 @@ click
 pillow
 pyserial
 poetry
+pn532pi
