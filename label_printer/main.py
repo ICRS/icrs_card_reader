@@ -100,5 +100,3 @@ if __name__ == "__main__":
             density = 5
             printer = PrinterClient(transport)
             printer.print_image(image, density=density)
-        else:
-            flash_red(pixels)
