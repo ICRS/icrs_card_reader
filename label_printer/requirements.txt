@@ -4,3 +4,7 @@ pyserial
 poetry
 pn532pi
 python-dotenv
+
+rpi_ws281x
+adafruit-circuitpython-neopixel
+adafruit-blinka
