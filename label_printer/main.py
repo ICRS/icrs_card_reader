@@ -55,9 +55,9 @@ def setup():
 
 def flash_red(pixels):
     for _ in range(3):
-        pixels.fill(20, 0, 0)
+        pixels.fill((20, 0, 0))
         time.sleep(0.05)
-        pixels.fill(0, 0, 0)
+        pixels.fill((0, 0, 0))
         time.sleep(0.05)
 
 
