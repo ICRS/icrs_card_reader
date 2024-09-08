@@ -3,3 +3,4 @@ pillow
 pyserial
 poetry
 pn532pi
+python-dotenv

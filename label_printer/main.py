@@ -10,6 +10,9 @@ from PIL import Image
 from pn532pi import Pn532, pn532
 from pn532pi import Pn532I2c
 
+from dotenv import load_dotenv
+load_dotenv()
+
 username = os.getenv("USERNAME", "username")
 password = os.getenv('PASSWORD', 'password')
 endpoint = os.getenv("ENDPOINT", 'localhost:8000')
