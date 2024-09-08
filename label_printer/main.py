@@ -110,6 +110,7 @@ if __name__ == "__main__":
             density = 5
             try:
                 printer.print_image(image, density=density)
+                flash_green(pixels)
             except Exception as e:
                 print(f"Error connecting to printer: {e}")
-                flash_green(pixels)
+                flash_red(pixels)
