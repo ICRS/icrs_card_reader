@@ -61,9 +61,19 @@ def flash_red(pixels):
         time.sleep(0.05)
 
 
+def flash_green(pixels):
+    for _ in range(3):
+        pixels.fill((0, 20, 0))
+        time.sleep(0.05)
+        pixels.fill((0, 0, 0))
+        time.sleep(0.05)
+
+
 if __name__ == "__main__":
     transport = SerialTransport(port=port)
+    printer = PrinterClient(transport)
     setup()
+
     while True:
         time.sleep(0.1)
         pixels.fill((0, 0, 0))
@@ -98,5 +108,8 @@ if __name__ == "__main__":
             # print(image.size)
 
             density = 5
-            printer = PrinterClient(transport)
-            printer.print_image(image, density=density)
+            try:
+                printer.print_image(image, density=density)
+            except Exception as e:
+                print(f"Error connecting to printer: {e}")
+                flash_green(pixels)
