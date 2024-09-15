@@ -1,0 +1,3 @@
+[submodule "label_printer/niimprint"]
+	path = label_printer/niimprint
+	url = https://github.com/AndBondStyle/niimprint.git
