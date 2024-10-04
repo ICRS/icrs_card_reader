@@ -10,6 +10,8 @@
 
 #include <Fonts/FreeMono9pt7b.h>
 
+#include "config.h"
+
 // #include <Arduino_JSON.h>
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire);
 // #include "config.h"
@@ -69,8 +71,22 @@ void readNFC() {
     NfcTag tag = nfc.read();
     tag.print();
     
-    tagId = tag.getUidString();
-
+    // tagId = tag.getUidString();
+    int uidLength = tag.getUidLength();
+    byte uid[uidLength];
+    tag.getUid(uid, uidLength);
+    
+    String tagId = "";
+    for(size_t i = 0; i < uidLength; i++)
+    {
+      if(uid[i] < 16)
+      {
+        tagId += "0";
+      }
+      tagId += String(uid[i], HEX);
+    }
+    tagId.toUpperCase();
+    
     display.setFont();
     displayText(tagId);
 
