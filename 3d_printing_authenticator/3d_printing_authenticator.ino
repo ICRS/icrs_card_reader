@@ -10,7 +10,7 @@
 
 #include "config.h"
 
-#define NUM_LEDS 2
+#define NUM_LEDS 3
 
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
@@ -102,7 +102,7 @@ void readNFC() {
     String tagId = "";
     for(size_t i = 0; i < uidLength; i++)
     {
-      if(uid[i] < 10)
+      if(uid[i] < 16)
       {
         tagId += "0";
       }
