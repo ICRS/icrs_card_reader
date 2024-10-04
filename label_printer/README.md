@@ -12,8 +12,13 @@ RPi/Ubuntu
 2. Create and activate a virtual environment: `python -m venv .venv`
 3. Install dependencies `pip install -r requirements.txt`
 4. Pull submodules `git submodule update --init --recursive`
-5. Install Niimbot dependency: `cd niimprint; poetry install` 
+5. Install Niimbot dependency: `cd niimprint; poetry install`
+6. Edit .env
 
 
 # Run
 Run `python main.py`
+
+# Deploy
+Create a systemctl service
+
