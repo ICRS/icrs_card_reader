@@ -21,6 +21,7 @@ endpoint = os.getenv("ENDPOINT", 'localhost:8000')
 basic = HTTPBasicAuth(username, password)
 
 uuid = ""
+cid = ""
 
 
 PN532_I2C = Pn532I2c(1)
@@ -30,7 +31,7 @@ nfc = Pn532(PN532_I2C)
 def validate_cid(text: str):
     text = text.strip()
     return text
-    
+
 
 def read_cid():
     cap = cv2.VideoCapture(0)
@@ -90,15 +91,19 @@ if __name__ == "__main__":
         if success:
             u = uid.hex().upper()
             print("Uid: ", u)
-            if uuid == u:
+            c = read_cid()
+
+            if not c:
+                print(f"CID not found: {c}")
                 continue
 
-            cid = read_cid()
-            if not cid:
-                print(f"CID not found: {cid}")
+            if uuid == u and c == cid:
+                print(f"{uuid} and {cid} already tried")
                 continue
 
+            cid = c
             uuid = u
+
             r = requests.get(
                 f"http://{endpoint}/register/card/cid",
                 params={"uuid": uuid,
@@ -108,4 +113,3 @@ if __name__ == "__main__":
             if r.status_code != 200:
                 print(f"Bad response: {r.reason}")
                 continue
-
