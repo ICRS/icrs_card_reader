@@ -1,0 +1,8 @@
+click
+pillow
+pyserial
+pn532pi
+python-dotenv
+
+opencv-python
+pytesseract
