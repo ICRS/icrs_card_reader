@@ -13,7 +13,8 @@ RPi/Ubuntu
 3. Install dependencies `pip install -r requirements.txt`
 4. Pull submodules `git submodule update --init --recursive`
 5. Install Niimbot dependency: `cd niimprint; poetry install`
-6. Edit .env
+6. Run `raspi-config`, enable i2c
+7. Edit .env
 
 
 # Run
