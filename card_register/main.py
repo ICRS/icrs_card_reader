@@ -10,6 +10,8 @@ import pytesseract
 from pn532pi import Pn532, pn532
 from pn532pi import Pn532I2c
 
+import board
+import neopixel
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,12 +19,16 @@ load_dotenv()
 username = os.getenv("USERNAME", "username")
 password = os.getenv('PASSWORD', 'password')
 endpoint = os.getenv("ENDPOINT", 'localhost:8000')
+neopixel_pin = int(os.getenv("NEOPIXEL_PIN", 18))
 
 basic = HTTPBasicAuth(username, password)
+
+pixels = neopixel.NeoPixel(board.pin.Pin(neopixel_pin), 8)
 
 uuid = ""
 cid = ""
 
+pixels.fill((10, 10, 0))
 
 PN532_I2C = Pn532I2c(1)
 nfc = Pn532(PN532_I2C)
@@ -90,12 +96,31 @@ if __name__ == "__main__":
 
         if success:
             u = uid.hex().upper()
-            print("Uid: ", u)
+            print("UID: ", u)
             c = read_cid()
 
+            print("CID: ", c)
             if not c:
                 print(f"CID not found: {c}")
                 continue
+
+            c = c.strip()
+            if not c:
+                print(f"CID not found: {c}")
+                continue
+            
+            if not c.startswith("CID "):
+                print(f"CID not found: {c}")
+                continue
+
+            c = c[4:]
+            c = c[:8]
+
+            if not c.isnumeric():
+                print(f"CID not found: {c}")
+                continue
+
+            print(f"CID found {c}")
 
             if uuid == u and c == cid:
                 print(f"{uuid} and {cid} already tried")
@@ -104,7 +129,7 @@ if __name__ == "__main__":
             cid = c
             uuid = u
 
-            r = requests.get(
+            r = requests.post(
                 f"http://{endpoint}/register/card/cid",
                 params={"uuid": uuid,
                         "cid": cid},

@@ -3,6 +3,11 @@ pillow
 pyserial
 pn532pi
 python-dotenv
+requests
 
 opencv-python
 pytesseract
+
+rpi_ws281x
+adafruit-circuitpython-neopixel
+adafruit-blinka
