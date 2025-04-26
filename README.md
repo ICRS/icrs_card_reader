@@ -1,5 +1,9 @@
 # Card Reader
 
+# `Deprecated in favour of:` [github.com/ICRS/ICRScanner](https://github.com/ICRS/ICRScanner)
+
+---
+
 ### A collection of card scanning projects for the Imperial College Robotics Soceity
 
 All written in Arduino using ESP-32 boards
